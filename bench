@@ -82,6 +82,7 @@ ALL_BENCHMARKS="$GABRIEL_BENCHMARKS $NUM_BENCHMARKS $KVW_BENCHMARKS $IO_BENCHMAR
 ALL_SYSTEMS="bigloo bones chez chibi chicken5 chicken5csi cyclone femtolisp foment gambitc gauche gerbil guile ironscheme kawa larceny mit petite picrin racket rhizome rscheme s9fes sagittarius scheme48 vicare ypsilon" #  chicken4 chicken4csi
 ################################################################
 
+NUM_THREADS=2
 NB_RUNS=1
 clean=true
 options=""
@@ -288,7 +289,9 @@ make_src_code ()
         postlude="/dev/null"
     fi
 
-    cat "$prelude" "${SRC}/$1.scm" "${SRC}/common.scm" "$postlude" "${SRC}/common-postlude.scm" > "${TEMP}/$1.${EXTENSION}"
+    echo "(define *num-threads* ${NUM_THREADS})" > "${TEMP}/$1.${EXTENSION}"
+    echo "(import (srfi 18) (scheme process-context))" >> "${TEMP}/$1.${EXTENSION}"
+    cat "$prelude" "${SRC}/$1.scm" "${SRC}/common.scm" "$postlude" "${SRC}/common-postlude.scm" >> "${TEMP}/$1.${EXTENSION}"
 }
 
 # -----------------------------------------------------------------------------
@@ -409,7 +412,7 @@ chicken5csi_exec ()
 
 cyclone_comp ()
 {
-  ${CYCLONE} $1
+  ${CYCLONE} -use-unsafe-prims $1
 }
 
 cyclone_exec ()
@@ -859,6 +862,7 @@ while [ $# -gt 2 ] ; do
     shift
     case $arg in
         -r) NB_RUNS=$1    ; shift ;;
+        -t) NUM_THREADS=$1    ; shift ;;
         -c) clean=$1      ; shift ;;
         -o) options=$1    ; shift ;;
         *) error ">>> Unknown argument of $arg given." ;;
